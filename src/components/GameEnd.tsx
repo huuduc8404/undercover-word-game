@@ -1,5 +1,5 @@
 import { useGame } from "../context/GameContext";
-import { usePeer } from "../context/PeerContext";
+import { useWebSocket } from "../context/WebSocketContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trophy, User } from "lucide-react";
@@ -9,10 +9,12 @@ import { MrWhiteGuess } from "./shared/MrWhiteGuess";
 
 export const GameEnd = () => {
   const { gameState, resetGame, setGameState } = useGame();
-  const { peer, isHost } = usePeer();
+  const { socket, isHost } = useWebSocket();
   const { playSound } = useSound();
+  
+  console.log("GameEnd rendering. IsHost:", isHost);
 
-  const currentPlayer = gameState.players.find(p => p.id === peer?.id);
+  const currentPlayer = gameState.players.find(p => p.id === socket?.id);
 
   useEffect(() => {
     // Update scores for winners

@@ -1,7 +1,7 @@
 import { useGame } from "../context/GameContext";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { usePeer } from "../context/PeerContext";
+import { useWebSocket } from "../context/WebSocketContext";
 import { PlayerList } from "./shared/PlayerList";
 import { useEffect, useState } from "react";
 import { useSound } from "@/context/SoundContext";
@@ -10,8 +10,10 @@ import { toast } from "sonner";
 
 export const WordReveal = () => {
   const { gameState, setPhase, submitDescription, rerollWords } = useGame();
-  const { peer, isHost, sendToHost } = usePeer();
+  const { socket, isHost, sendToHost } = useWebSocket();
   const { playSound } = useSound();
+  
+  console.log("WordReveal rendering. IsHost:", isHost);
 
   const [description, setDescription] = useState("");
 
@@ -23,7 +25,7 @@ export const WordReveal = () => {
     }
   }, []);
 
-  const currentPlayer = gameState.players.find(p => p.id === peer?.id);
+  const currentPlayer = gameState.players.find(p => p.id === socket?.id);
 
   const handleStartVoting = () => {
     setPhase("voting");
@@ -40,24 +42,21 @@ export const WordReveal = () => {
     if (isHost) {
       submitDescription(currentPlayer.id, description.trim());
     } else {
-      sendToHost({
-        type: "SUBMIT_DESCRIPTION",
-        playerId: currentPlayer.id,
-        description: description.trim()
-      });
+      // Use the correct signature for WebSocketContext.sendToHost
+      sendToHost("submitDescription", currentPlayer.id, description.trim());
     }
     setDescription("");
   };
 
-  if (!peer) {
-    return <div className="text-white text-center">Connecting to game network...</div>;
+  if (!socket) {
+    return <div className="text-white text-center">Connecting to game server...</div>;
   }
 
   if (!currentPlayer) {
     return (
       <div className="text-white text-center">
         <p>Waiting for game data...</p>
-        <p className="text-sm opacity-70">Your ID: {peer.id}</p>
+        <p className="text-sm opacity-70">Your ID: {socket.id}</p>
       </div>
     );
   }
@@ -73,6 +72,8 @@ export const WordReveal = () => {
   const currentSpeakerIndex = gameState.speakingOrder ? speakingOrderPlayers.findIndex(p => !p.submittedDescription) : 0;
   const myIndex = gameState.speakingOrder ? speakingOrderPlayers.findIndex(p => p.id === currentPlayer.id) : 0;
   const isMyTurn = gameState.speakingOrder && currentSpeakerIndex === myIndex;
+  
+  console.log("Speaking order:", gameState.speakingOrder, "Current speaker index:", currentSpeakerIndex, "My index:", myIndex);
 
   return (
     <div className="max-w-md mx-auto p-6 space-y-4 animate-fade-in">
@@ -133,7 +134,7 @@ export const WordReveal = () => {
 
         <PlayerList
           players={speakingOrderPlayers}
-          currentPlayerId={peer.id}
+          currentPlayerId={socket.id}
           speakingOrder={true}
         />
       </div>

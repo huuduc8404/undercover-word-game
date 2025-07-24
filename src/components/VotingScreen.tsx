@@ -1,5 +1,5 @@
 import { useGame } from "../context/GameContext";
-import { usePeer } from "../context/PeerContext";
+import { useWebSocket } from "../context/WebSocketContext";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { PlayerList } from "./shared/PlayerList";
@@ -7,15 +7,17 @@ import { useSound } from "@/context/SoundContext";
 
 export const VotingScreen = () => {
   const { gameState, submitVote } = useGame();
-  const { peer, isHost, sendToHost } = usePeer();
+  const { socket, isHost, sendToHost } = useWebSocket();
   const { playSound } = useSound();
   const [selectedPlayer, setSelectedPlayer] = useState<string>("");
+  
+  console.log("VotingScreen rendering. IsHost:", isHost);
 
   useEffect(() => {
     playSound("/sounds/new-page.mp3");
   }, []);
 
-  const currentPlayer = gameState.players.find(p => p.id === peer?.id);
+  const currentPlayer = gameState.players.find(p => p.id === socket?.id);
   const hasVoted = currentPlayer && gameState.votingResults?.[currentPlayer.id];
   const isEliminated = currentPlayer?.isEliminated;
 
@@ -31,7 +33,7 @@ export const VotingScreen = () => {
         <PlayerList
           players={activePlayers}
           votingResults={gameState.votingResults}
-          currentPlayerId={peer?.id}
+          currentPlayerId={socket?.id}
         />
       </div>
     );
@@ -44,11 +46,8 @@ export const VotingScreen = () => {
       if (isHost) {
         submitVote(currentPlayer.id, selectedPlayer);
       } else {
-        sendToHost({
-          type: "SUBMIT_VOTE",
-          voterId: currentPlayer.id,
-          targetId: selectedPlayer
-        });
+        // Use the correct signature for WebSocketContext.sendToHost
+        sendToHost("submitVote", currentPlayer.id, selectedPlayer);
       }
     }
   };
@@ -62,7 +61,7 @@ export const VotingScreen = () => {
         selectedPlayer={selectedPlayer}
         onPlayerClick={!hasVoted ? setSelectedPlayer : undefined}
         votingResults={gameState.votingResults}
-        currentPlayerId={peer?.id}
+        currentPlayerId={socket?.id}
       />
 
       {!hasVoted && (

@@ -1,5 +1,5 @@
 import { useGame } from "../context/GameContext";
-import { usePeer } from "../context/PeerContext";
+import { useWebSocket } from "../context/WebSocketContext";
 import { Button } from "@/components/ui/button";
 import { Link, Hash, Plus, Minus } from "lucide-react";
 import { toast } from "sonner";
@@ -10,12 +10,14 @@ import { distributionMeetsLimits } from "@/config/roleDistribution";
 
 export const GameSetup = () => {
   const { gameState, startGame, updateRoleDistribution } = useGame();
-  const { hostId, isHost } = usePeer();
+  const { roomId, isHost } = useWebSocket();
   const isMobile = useIsMobile();
+  
+  console.log("GameSetup rendering. RoomId:", roomId, "IsHost:", isHost);
 
   const handleCopyLink = () => {
-    if (hostId) {
-      const gameLink = `${window.location.origin}${import.meta.env.BASE_URL}?gameId=${hostId}`;
+    if (roomId) {
+      const gameLink = `${window.location.origin}${import.meta.env.BASE_URL}?gameId=${roomId}`;
       navigator.clipboard.writeText(gameLink);
       toast.success("Game link copied to clipboard!");
     }
@@ -38,7 +40,7 @@ export const GameSetup = () => {
         </div>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3 w-full">
-            <code className="bg-white/5 px-4 py-2 rounded-lg text-[#1EAEDB] font-mono text-lg w-full text-center">{hostId}</code>
+            <code className="bg-white/5 px-4 py-2 rounded-lg text-[#1EAEDB] font-mono text-lg w-full text-center">{roomId}</code>
             <Link className="h-5 w-5 text-white/70 group-hover:text-white transition-colors" />
           </div>
         </div>

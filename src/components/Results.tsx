@@ -1,7 +1,7 @@
 import { useGame } from "../context/GameContext";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { usePeer } from "@/context/PeerContext";
+import { useWebSocket } from "@/context/WebSocketContext";
 import { Input } from "@/components/ui/input";
 import { useEffect, useState } from "react";
 import { Send } from "lucide-react";
@@ -12,13 +12,15 @@ import { PlayerList } from "./shared/PlayerList";
 
 export const Results = () => {
   const { gameState, setGameState, submitMrWhiteGuess, eliminatePlayer, checkGameEnd } = useGame();
-  const { peer, isHost, sendToHost } = usePeer();
+  const { socket, isHost, sendToHost } = useWebSocket();
   const { playSound } = useSound();
+  
+  console.log("Results rendering. IsHost:", isHost);
   const [guess, setGuess] = useState("");
   const [tieBreakerPlayers, setTieBreakerPlayers] = useState<string[]>([]);
   const [showEliminatedCard, setShowEliminatedCard] = useState(false);
 
-  const currentPlayer = gameState.players.find(p => p.id === peer?.id);
+  const currentPlayer = gameState.players.find(p => p.id === socket?.id);
   const eliminatedPlayer = gameState.players
     .find(p => p.id === gameState.lastEliminatedId);
 
@@ -84,11 +86,8 @@ export const Results = () => {
     if (isHost) {
       submitMrWhiteGuess(guess.trim());
     } else {
-      // Send guess to host
-      sendToHost({
-        type: "MR_WHITE_GUESS",
-        guess: guess.trim()
-      });
+      // Send guess to host using the correct signature
+      sendToHost("submitMrWhiteGuess", guess.trim());
     }
   };
 
@@ -156,7 +155,7 @@ export const Results = () => {
       <PlayerList
         players={activePlayers}
         votingResults={gameState.votingResults}
-        currentPlayerId={peer?.id}
+        currentPlayerId={socket?.id}
         tieBreakerPlayers={
           gameState.mrWhiteGuess == null // prevent playing tiebreaker animation again after mrWhite guess
           ? tieBreakerPlayers : []

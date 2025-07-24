@@ -1,12 +1,14 @@
 import { useGame } from "../context/GameContext";
-import { usePeer } from "../context/PeerContext";
+import { useWebSocket } from "../context/WebSocketContext";
 import { Button } from "@/components/ui/button";
 import { UserX } from "lucide-react";
 import { PlayerList } from "./shared/PlayerList";
 
 export const GameLobby = () => {
   const { gameState, startGame } = useGame();
-  const { isHost } = usePeer();
+  const { isHost } = useWebSocket();
+  
+  console.log("GameLobby rendering. IsHost:", isHost);
 
   const handleStartNextRound = () => {
     startGame();

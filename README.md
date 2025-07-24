@@ -83,7 +83,7 @@ npm i
 # Step 3: Start the development server with auto-reloading and an instant preview.
 npm run dev
 ```
-Access at http://localhost:8080
+Access at http://localhost:8081
 
 This project works through peer-to-peer WebRTC communication with [peerJs](https://github.com/peers/peerjs).
 
