@@ -39,8 +39,8 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addPlayer = (name: string, id: string) => {
     setGameState((prev) => {
-      if (prev.players.length >= 10) {
-        toast.error("Maximum 10 players allowed!");
+      if (prev.players.length >= 20) {
+        toast.error("Maximum 20 players allowed!");
         return prev;
       }
 
